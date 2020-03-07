@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Arrays_Coding
 {
@@ -10,36 +11,121 @@ namespace Arrays_Coding
             string[] breeds = new string[100];            
             int[] weights = new int[100];
 
-            int count = GetDogData(names, breeds, weights);
+            //int count = GetDogData(names, breeds, weights);
+
+            int count = ReadDogFile(names, breeds, weights);
 
             PrintDogs(names, breeds, weights, count);
 
-            SelectionSortDogsByNames(names, breeds, weights, count);
-            Console.WriteLine("\nAfter sorting by names in ascending order: ");
+            //SelectionSortDogsByNames(names, breeds, weights, count);
+            SelectionSortDogsByBreeds(names, breeds, weights, count);
+            Console.WriteLine("\nAfter sorting by breeds in ascending order: ");
             PrintDogs(names, breeds, weights, count);
 
-            Console.Write("\nEnter the name of dog you want to find (stop to exit): ");
-            string nameToFind = Console.ReadLine();
+            Console.WriteLine("\nSummary report of the breeds:");
+            BreedSummary(names, breeds, weights, count);
 
-            while (nameToFind.ToLower() != "stop")
+            //Console.Write("\nEnter the name of dog you want to find (stop to exit): ");
+            //string nameToFind = Console.ReadLine();
+
+            //while (nameToFind.ToLower() != "stop")
+            //{
+            //    //int indexFound = FindDogSequential(names, count, nameToFind);
+            //    int indexFound = FindDogBinary(names, count, nameToFind);
+
+            //    if (indexFound != -1)
+            //    {
+            //        Console.WriteLine(names[indexFound] + " is a " + breeds[indexFound] + " and weighs " + weights[indexFound]);
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine(nameToFind + " could not be found");
+            //    }
+
+            //    Console.Write("\nEnter the name of dog you want to find (stop to exit): ");
+            //    nameToFind = Console.ReadLine();
+            //}
+
+            Console.ReadKey();
+        }
+
+
+        static void BreedSummary(string[] names, string[] breeds, int[] weights, int count)
+        {
+            StreamWriter outFile = new StreamWriter("breed_summary.txt");
+
+            string currentBreed = breeds[0];
+            int breedCount = 1;
+            double totalBreedWeight = weights[0];
+            Console.WriteLine(names[0] + "\t" + breeds[0] + "\t" + weights[0]);
+            outFile.WriteLine(names[0] + "\t" + breeds[0] + "\t" + weights[0]);
+
+            for (int i = 1; i < count; i++)
             {
-                //int indexFound = FindDogSequential(names, count, nameToFind);
-                int indexFound = FindDogBinary(names, count, nameToFind);
-
-                if (indexFound != -1)
+                if (breeds[i] == currentBreed)
                 {
-                    Console.WriteLine(names[indexFound] + " is a " + breeds[indexFound] + " and weighs " + weights[indexFound]);
+                    breedCount++;
+                    totalBreedWeight += weights[i];
                 }
                 else
                 {
-                    Console.WriteLine(nameToFind + " could not be found");
+                    Console.WriteLine("There are " + breedCount + " " + currentBreed +
+                        " and their average weight is " + (totalBreedWeight / breedCount));
+                    outFile.WriteLine("There are " + breedCount + " " + currentBreed +
+                        " and their average weight is " + (totalBreedWeight / breedCount));
+
+                    currentBreed = breeds[i];
+                    breedCount = 1;
+                    totalBreedWeight = weights[i];
                 }
 
-                Console.Write("\nEnter the name of dog you want to find (stop to exit): ");
-                nameToFind = Console.ReadLine();
+                Console.WriteLine(names[i] + "\t" + breeds[i] + "\t" + weights[i]);
+                outFile.WriteLine(names[i] + "\t" + breeds[i] + "\t" + weights[i]);
+
             }
 
-            Console.ReadKey();
+            Console.WriteLine("There are " + breedCount + " " + currentBreed +
+                " and their average weight is " + (totalBreedWeight / breedCount));
+
+            outFile.WriteLine("There are " + breedCount + " " + currentBreed +
+                " and their average weight is " + (totalBreedWeight / breedCount));
+
+            outFile.Close();
+        }
+
+        static int ReadDogFile(string[] names, string[] breeds, int[] weights)
+        {
+            int count = 0;
+
+            if (File.Exists("dogs.txt"))
+            {
+                StreamReader inFile = new StreamReader("dogs.txt");
+
+                string line = inFile.ReadLine();
+
+                while (line != null)
+                {
+                    string[] tempArray = line.Split('#');
+                    Console.WriteLine("The elements are: " + tempArray[0] + " " +
+                        tempArray[1] + " " + tempArray[2]);
+
+                    names[count] = tempArray[0];
+                    breeds[count] = tempArray[1];
+                    weights[count] = int.Parse(tempArray[2]);
+
+                    count++;
+
+                    line = inFile.ReadLine();
+                }
+
+                inFile.Close();
+            }
+            else
+            {
+                Console.WriteLine("dogs.txt could not be found.");
+            }
+
+            return count;
         }
 
         static int FindDogBinary(string[] names, int count, string searchValue)
@@ -82,6 +168,32 @@ namespace Arrays_Coding
                 for (int j = i + 1; j < count; j++)
                 {
                     if (names[j].CompareTo(names[minIndex]) < 0)
+                    {
+                        minIndex = j;
+                    }
+                }
+
+                if (minIndex != i)
+                {
+                    Swap(names, minIndex, i);
+                    Swap(breeds, minIndex, i);
+                    Swap(weights, minIndex, i);
+                }
+
+                //Console.WriteLine();
+                //PrintDogs(names, breeds, weights, count);
+            }
+        }
+
+        static void SelectionSortDogsByBreeds(string[] names, string[] breeds, int[] weights, int count)
+        {
+            for (int i = 0; i < count - 1; i++)
+            {
+                int minIndex = i;
+
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (breeds[j].CompareTo(breeds[minIndex]) < 0)
                     {
                         minIndex = j;
                     }
